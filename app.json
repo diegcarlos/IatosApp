@@ -6,10 +6,24 @@
     "web": {
       "output": "static"
     },
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "name": "IatosApp",
-    "slug": "IatosApp"
+    "slug": "IatosApp",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "44b261a5-ac4e-4cf2-beda-603aae13d9f5"
+      }
+    },
+    "android": {
+      "package": "com.diegcarlos.IatosApp",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    }
   }
 }
