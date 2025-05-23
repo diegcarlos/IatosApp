@@ -20,6 +20,7 @@ const shapeAssets = {
   2: require("../assets/2_shape.png"),
   3: require("../assets/3_shape.png"),
   4: require("../assets/4_shape.png"),
+  5: require("../assets/5_shape.png"),
 };
 
 /**
@@ -33,9 +34,9 @@ export const simulateHairTransplant = async (
     const formData = new FormData();
 
     // Validação do shapeImage
-    if (!shapeImage || shapeImage < 1 || shapeImage > 4) {
+    if (!shapeImage || shapeImage < 1 || shapeImage > 5) {
       throw new Error(
-        `Shape ${shapeImage} inválido. Use um número entre 1 e 4.`
+        `Shape ${shapeImage} inválido. Use um número entre 1 e 5.`
       );
     }
 
