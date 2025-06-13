@@ -3,12 +3,6 @@ import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system";
 import "react-native-get-random-values";
 
-const loadDefaultShape = async () => {
-  const asset = Asset.fromModule(require("../assets/shape.webp"));
-  await asset.downloadAsync();
-  return asset.localUri || asset.uri; // seguro em produção
-};
-
 type FileInput = {
   uri: string;
   type: string;
@@ -21,6 +15,8 @@ const shapeAssets = {
   3: require("../assets/3_shape.png"),
   4: require("../assets/4_shape.png"),
   5: require("../assets/5_shape.png"),
+  6: require("../assets/6_shape.png"),
+  7: require("../assets/7_shape.png"),
 };
 
 /**
@@ -28,39 +24,13 @@ const shapeAssets = {
  */
 export const simulateHairTransplant = async (
   images: [string, string],
-  shapeImage: number
+  shapeImage: number,
+  typeIa: 'fastgan' | 'bfl'
 ): Promise<{ before: string; after: string }> => {
   try {
     const formData = new FormData();
 
-    // Validação do shapeImage
-    if (!shapeImage || shapeImage < 1 || shapeImage > 5) {
-      throw new Error(
-        `Shape ${shapeImage} inválido. Use um número entre 1 e 5.`
-      );
-    }
-
-    // Verifica se o shape existe no objeto shapeAssets
-    if (!(shapeImage in shapeAssets)) {
-      throw new Error(
-        `Shape ${shapeImage} não encontrado nos assets disponíveis`
-      );
-    }
-
-    const shapeModule = shapeAssets[shapeImage as keyof typeof shapeAssets];
-    console.log("Shape selecionado:", shapeImage);
-    console.log("Shape module:", shapeModule);
-
-    // Criando o asset a partir do módulo
-    const shapeAsset = Asset.fromModule(shapeModule);
-    await shapeAsset.downloadAsync();
-    const shapeUri = shapeAsset.localUri || shapeAsset.uri;
-
-    if (!shapeUri) {
-      throw new Error("Não foi possível obter a URI do shape");
-    }
-
-    console.log("Shape URI:", shapeUri);
+    
 
     const prepareFile = async (
       uri: string,
@@ -68,7 +38,7 @@ export const simulateHairTransplant = async (
       name: string
     ): Promise<FileInput> => {
       try {
-        console.log(`Preparando arquivo ${name}:`, { uri, type });
+
 
         if (!uri) {
           throw new Error(`URI inválida para o arquivo ${name}`);
@@ -80,11 +50,9 @@ export const simulateHairTransplant = async (
           !uri.startsWith("content://") &&
           !uri.startsWith("http")
         ) {
-          console.log(`Processando asset embutido: ${uri}`);
           const asset = Asset.fromURI(uri);
           await asset.downloadAsync();
           const localUri = asset.localUri || asset.uri;
-          console.log("URI local do asset:", localUri);
 
           if (!localUri || !localUri.startsWith("file://")) {
             throw new Error(`Asset inválido: ${uri}`);
@@ -111,18 +79,57 @@ export const simulateHairTransplant = async (
       }
     };
 
-    const faceFile = await prepareFile(images[0], "image/jpeg", "face.jpg");
 
-    // Usando o shape diretamente como asset
-    const shapeFile = await prepareFile(shapeUri, "image/png", "shape.png");
-    const colorFile = await prepareFile(images[0], "image/jpeg", "color.jpg");
+    // Verificação do tipo de IA e preparação dos arquivos
+    let url: string;
+    
+    if (typeIa === 'fastgan') {
+      // Validação do shapeImage
+    if (!shapeImage || shapeImage < 1 || shapeImage > 7) {
+      throw new Error(
+        `Shape ${shapeImage} inválido. Use um número entre 1 e 7.`
+      );
+    }
 
-    formData.append("face", faceFile as any);
-    formData.append("shape", shapeFile as any);
-    formData.append("color", colorFile as any);
+    // Verifica se o shape existe no objeto shapeAssets
+    if (!(shapeImage in shapeAssets)) {
+      throw new Error(
+        `Shape ${shapeImage} não encontrado nos assets disponíveis`
+      );
+    }
+
+    const shapeModule = shapeAssets[shapeImage as keyof typeof shapeAssets];
+
+    // Criando o asset a partir do módulo
+    const shapeAsset = Asset.fromModule(shapeModule);
+    await shapeAsset.downloadAsync();
+    const shapeUri = shapeAsset.localUri || shapeAsset.uri;
+
+    if (!shapeUri) {
+      throw new Error("Não foi possível obter a URI do shape");
+    }
+      // Para FastGAN: enviar face, shape e color
+      url = "https://api-iatos.diego-carlos.top/hair-fast-generation";
+      
+      const faceFile = await prepareFile(images[0], "image/jpeg", "face.jpg");
+      const shapeFile = await prepareFile(shapeUri, "image/png", "shape.png");
+      const colorFile = await prepareFile(images[0], "image/jpeg", "color.jpg");
+      
+      formData.append("face", faceFile as any);
+      formData.append("shape", shapeFile as any);
+      formData.append("color", colorFile as any);
+    } else if (typeIa === 'bfl') {
+      // Para BFL: enviar apenas um arquivo com nome 'image'
+      url = "https://api-iatos.diego-carlos.top/bfl-hair";
+      
+      const imageFile = await prepareFile(images[0], "image/jpeg", "image.jpg");
+      formData.append("image", imageFile as any);
+    } else {
+      throw new Error(`Tipo de IA inválido: ${typeIa}. Use 'fastgan' ou 'bfl'.`);
+    }
 
     const response = await fetch(
-      "https://api-iatos.diego-carlos.top/hair-fast-generation",
+      url,
       {
         method: "POST",
         headers: {
@@ -132,16 +139,17 @@ export const simulateHairTransplant = async (
         body: formData,
       }
     );
-
-    const text = await response.text();
+    const res = await response.json();
+    const finish = typeIa === 'bfl' ? {
+        before: res.files.url,
+        after: res.result
+      } : {
+        before: res.face.url,
+        after: res.result.value.url
+      }
     try {
-      const json: GeneratedType = JSON.parse(text);
-      return {
-        before: json.face.url,
-        after: json.result.url,
-      };
+      return finish;
     } catch (e) {
-      console.log("Resposta não JSON:", text);
       throw new Error("Erro ao parsear resposta da API");
     }
   } catch (error: any) {

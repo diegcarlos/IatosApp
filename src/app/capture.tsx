@@ -229,9 +229,8 @@ export default function Capture() {
           Centralize seu rosto e tire uma foto
         </Text>
         {hasCameraPermission ? (
-          <View className="flex-1 w-full rounded-2xl overflow-hidden shadow-md relative">
+          <View style={{ flex: 1, width: "100%", borderRadius: 16, overflow: "hidden", position: "relative" }}>
             <CameraView
-              className="flex-1 w-full"
               style={{ width: "100%", height: "100%", flex: 1 }}
               facing={cameraFacing}
               ref={cameraRef}
