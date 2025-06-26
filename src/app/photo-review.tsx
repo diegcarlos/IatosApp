@@ -6,7 +6,6 @@ import {
   Image,
   LayoutChangeEvent,
   SafeAreaView,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -149,37 +148,31 @@ export default function PhotoReview() {
 
   /**
    * Função para processar a simulação de transplante capilar
-   * Utiliza a IA selecionada (FastGAN ou BFL) e o shape quando necessário
+   * Agora utiliza apenas BFL
    */
   const handleSimulate = async () => {
     if (!photo) {
       Alert.alert("Erro", "A foto não está disponível.");
       return;
     }
-
     setIsLoading(true);
-
     try {
-      // Enviando a foto original do usuário e os parâmetros baseados na IA selecionada
+      // Enviando a foto original do usuário para BFL
       const simulationResult = await simulateHairTransplant(
-        [photo, photo], // Mantendo a foto original do usuário
-        selectedAI === 'fastgan' ? selectedShape : null, // Shape apenas para FastGAN
-        selectedAI // Passando o tipo de IA selecionada
+        [photo, photo],
+        null,
+        selectedAI
       );
-
-
       await saveSimulation(simulationResult);
       router.push({
         pathname: "/result",
         params: { beforeAfterImages: JSON.stringify(simulationResult) },
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro durante a simulação:", error);
       Alert.alert(
         "Erro na Simulação",
-        `Não foi possível gerar a simulação.\n\n${
-          error.message ?? JSON.stringify(error)
-        }`
+        `Não foi possível gerar a simulação.\n\n${error.message ?? JSON.stringify(error)}`
       );
     } finally {
       setIsLoading(false);
@@ -257,156 +250,6 @@ export default function PhotoReview() {
                 />
               </View>
             )}
-          </View>
-        </View>
-
-        
-
-        {/* Área de Seleção de Shape - Apenas para FastGAN com Animação */}
-        <Animated.View
-          style={{
-            maxHeight: shapesSectionAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 200], // Altura máxima da seção
-            }),
-            opacity: shapesSectionAnim,
-            overflow: 'hidden',
-          }}
-        >
-          {selectedAI === 'fastgan' && (
-            <View className="px-4 py-4 bg-background-light border-t border-background-dark">
-              <Text className="text-text-secondary text-base mb-3 font-medium">
-                Selecione o formato do cabelo:
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={true}
-                contentContainerStyle={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingRight: 16,
-                  height: 120,
-                }}
-              >
-                {hairShapes.map((shape) => (
-                  <TouchableOpacity
-                    key={shape.id}
-                    onPress={() => setSelectedShape(shape.id)}
-                    style={{
-                      width: 100,
-                      height: 100,
-                      marginRight: 16,
-                      borderRadius: 12,
-                      backgroundColor: "white",
-                      borderWidth: selectedShape === shape.id ? 2 : 1,
-                      borderColor:
-                        selectedShape === shape.id
-                          ? colors.primary.main
-                          : colors.background.dark,
-                      padding: 8,
-                      elevation: selectedShape === shape.id ? 8 : 4,
-                      shadowColor: "#000",
-                      shadowOffset: {
-                        width: 0,
-                        height: selectedShape === shape.id ? 4 : 2,
-                      },
-                      shadowOpacity: selectedShape === shape.id ? 0.3 : 0.2,
-                      shadowRadius: selectedShape === shape.id ? 6 : 4,
-                    }}
-                  >
-                    <Image
-                      source={shape.image}
-                      style={{ width: "100%", height: "100%" }}
-                      resizeMode="center"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-        </Animated.View>
-
-        {/* Área de Seleção de IA */}
-        <View className="px-4 py-4 bg-background-light">
-          <Text className="text-text-secondary text-base mb-3 font-medium">
-            Selecione o tipo de IA:
-          </Text>
-          <View className="flex-row mb-4">
-            <TouchableOpacity
-              onPress={() => setSelectedAI('fastgan')}
-              style={{
-                flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                marginRight: 8,
-                borderRadius: 8,
-                backgroundColor: selectedAI === 'fastgan' ? colors.primary.main : 'white',
-                borderWidth: 1,
-                borderColor: selectedAI === 'fastgan' ? colors.primary.main : colors.background.dark,
-                elevation: selectedAI === 'fastgan' ? 4 : 2,
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: selectedAI === 'fastgan' ? 2 : 1,
-                },
-                shadowOpacity: selectedAI === 'fastgan' ? 0.2 : 0.1,
-                shadowRadius: selectedAI === 'fastgan' ? 4 : 2,
-              }}
-            >
-              <Text style={{
-                textAlign: 'center',
-                fontWeight: '600',
-                color: selectedAI === 'fastgan' ? 'white' : colors.text.primary,
-              }}>
-                FastGAN
-              </Text>
-              <Text style={{
-                textAlign: 'center',
-                fontSize: 12,
-                marginTop: 2,
-                color: selectedAI === 'fastgan' ? 'white' : colors.text.secondary,
-              }}>
-                Com shapes
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={() => setSelectedAI('bfl')}
-              style={{
-                flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                marginLeft: 8,
-                borderRadius: 8,
-                backgroundColor: selectedAI === 'bfl' ? colors.primary.main : 'white',
-                borderWidth: 1,
-                borderColor: selectedAI === 'bfl' ? colors.primary.main : colors.background.dark,
-                elevation: selectedAI === 'bfl' ? 4 : 2,
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: selectedAI === 'bfl' ? 2 : 1,
-                },
-                shadowOpacity: selectedAI === 'bfl' ? 0.2 : 0.1,
-                shadowRadius: selectedAI === 'bfl' ? 4 : 2,
-              }}
-            >
-              <Text style={{
-                textAlign: 'center',
-                fontWeight: '600',
-                color: selectedAI === 'bfl' ? 'white' : colors.text.primary,
-              }}>
-                BFL
-              </Text>
-              <Text style={{
-                textAlign: 'center',
-                fontSize: 12,
-                marginTop: 2,
-                color: selectedAI === 'bfl' ? 'white' : colors.text.secondary,
-              }}>
-                Automático
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
 

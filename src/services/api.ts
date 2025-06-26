@@ -83,50 +83,12 @@ export const simulateHairTransplant = async (
     // Verificação do tipo de IA e preparação dos arquivos
     let url: string;
     
-    if (typeIa === 'fastgan') {
-      // Validação do shapeImage
-    if (!shapeImage || shapeImage < 1 || shapeImage > 7) {
-      throw new Error(
-        `Shape ${shapeImage} inválido. Use um número entre 1 e 7.`
-      );
-    }
 
-    // Verifica se o shape existe no objeto shapeAssets
-    if (!(shapeImage in shapeAssets)) {
-      throw new Error(
-        `Shape ${shapeImage} não encontrado nos assets disponíveis`
-      );
-    }
-
-    const shapeModule = shapeAssets[shapeImage as keyof typeof shapeAssets];
-
-    // Criando o asset a partir do módulo
-    const shapeAsset = Asset.fromModule(shapeModule);
-    await shapeAsset.downloadAsync();
-    const shapeUri = shapeAsset.localUri || shapeAsset.uri;
-
-    if (!shapeUri) {
-      throw new Error("Não foi possível obter a URI do shape");
-    }
-      // Para FastGAN: enviar face, shape e color
-      url = "https://api-iatos.diego-carlos.top/hair-fast-generation";
-      
-      const faceFile = await prepareFile(images[0], "image/jpeg", "face.jpg");
-      const shapeFile = await prepareFile(shapeUri, "image/png", "shape.png");
-      const colorFile = await prepareFile(images[0], "image/jpeg", "color.jpg");
-      
-      formData.append("face", faceFile as any);
-      formData.append("shape", shapeFile as any);
-      formData.append("color", colorFile as any);
-    } else if (typeIa === 'bfl') {
-      // Para BFL: enviar apenas um arquivo com nome 'image'
-      url = "https://api-iatos.diego-carlos.top/bfl-hair";
-      
-      const imageFile = await prepareFile(images[0], "image/jpeg", "image.jpg");
-      formData.append("image", imageFile as any);
-    } else {
-      throw new Error(`Tipo de IA inválido: ${typeIa}. Use 'fastgan' ou 'bfl'.`);
-    }
+    // Para BFL: enviar apenas um arquivo com nome 'image'
+    url = "http://192.168.3.3:4444/bfl-hair";
+    
+    const imageFile = await prepareFile(images[0], "image/jpeg", "image.jpg");
+    formData.append("image", imageFile as any);
 
     const response = await fetch(
       url,
@@ -140,13 +102,10 @@ export const simulateHairTransplant = async (
       }
     );
     const res = await response.json();
-    const finish = typeIa === 'bfl' ? {
+    const finish = {
         before: res.files.url,
         after: res.result
-      } : {
-        before: res.face.url,
-        after: res.result.value.url
-      }
+      } 
     try {
       return finish;
     } catch (e) {

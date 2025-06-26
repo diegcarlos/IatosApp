@@ -73,7 +73,7 @@ export default function Page() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Iatos - Tecnologia avançada em transplante capilar
+          Sanabria - Tecnologia avançada em transplante capilar
         </Text>
       </View>
     </View>

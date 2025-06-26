@@ -6,9 +6,27 @@
     "web": {
       "output": "static"
     },
-    "plugins": ["expo-router"],
-    "name": "IatosApp",
-    "slug": "IatosApp",
+    "icon": "./src/assets/app-icon.png",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "ios": {
+            "backgroundColor": "#b9bec1",
+            "image": "./src/assets/splash-bg.png",
+            "resizeMode": "cover"
+          },
+          "android": {
+            "backgroundColor": "#b9bec1",
+            "image": "./src/assets/splash-bg.png",
+            "resizeMode": "cover"
+          }
+        }
+      ]
+    ],
+    "name": "Sanabria",
+    "slug": "Sanabria",
     "extra": {
       "router": {},
       "eas": {
@@ -17,6 +35,7 @@
     },
     "android": {
       "package": "com.diegcarlos.IatosApp",
+      "label": "",
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",

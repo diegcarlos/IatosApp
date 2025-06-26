@@ -42,7 +42,7 @@ export default function Header({
               style={styles.logoIcon}
             />
             <Text style={styles.logoText}>
-              Iatos
+              Sanabria
             </Text>
           </View>
         )}
