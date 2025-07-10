@@ -55,15 +55,17 @@ export default function CustomButton({
               style={styles.buttonIcon}
             />
           )}
-          <Text
-            style={[
-              styles.buttonText,
-              primary ? styles.primaryText : styles.secondaryText,
-            ]}
-          >
-            {title}
-          </Text>
         </View>
+      )}
+      {title.length > 0 && (
+        <Text
+          style={[
+            styles.buttonText,
+            primary ? styles.primaryText : styles.secondaryText,
+          ]}
+        >
+          {title}
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -77,7 +79,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 8,
     padding: 12,
-    width: "100%",
+    flexDirection: "row",
   },
   buttonContent: {
     flexDirection: "row",
