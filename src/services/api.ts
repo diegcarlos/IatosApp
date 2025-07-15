@@ -1,6 +1,7 @@
 import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system";
 import "react-native-get-random-values";
+import { AgeType, VolumeType } from "../types";
 
 type FileInput = {
   uri: string;
@@ -72,7 +73,9 @@ const prepareFile = async (
  * Simula o processamento de imagens pela IA para gerar o resultado do transplante capilar.
  */
 export const simulateHairTransplant = async (
-  images: string
+  images: string,
+  age: AgeType = "young",
+  volume: VolumeType = "natural"
 ): Promise<{ before: string; after: string }> => {
   try {
     const formData = new FormData();
@@ -85,6 +88,10 @@ export const simulateHairTransplant = async (
 
     const imageFile = await prepareFile(images, "image/jpeg", "image.jpg");
     formData.append("image", imageFile as any);
+
+    // Adicionar os novos parâmetros
+    formData.append("age", age);
+    formData.append("volume", volume);
 
     const response = await fetch(url, {
       method: "POST",
@@ -112,7 +119,9 @@ export const simulateHairTransplant = async (
 
 export const simulateHairTransplantStability = async (
   image: string,
-  mask: string
+  mask: string,
+  age: AgeType = "young",
+  volume: VolumeType = "natural"
 ): Promise<{ before: string; after: string }> => {
   const formData = new FormData();
 
@@ -121,6 +130,10 @@ export const simulateHairTransplantStability = async (
 
   const maskFile = await prepareFile(mask, "image/png", "mask.png");
   formData.append("mask", maskFile as any);
+
+  // Adicionar os novos parâmetros
+  formData.append("age", age);
+  formData.append("volume", volume);
 
   const url = "https://api-iatos.diego-carlos.top/sta/edit-image";
 

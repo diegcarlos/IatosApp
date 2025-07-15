@@ -9,7 +9,7 @@ interface DrawingState {
   drawingPoints: Point[];
   hasSelection: boolean;
   maskUri: string | null;
-  brushSize: number; // Fixo em 20px
+  brushSize: number; // Agora mutável
   imageDimensions: { width: number; height: number } | null;
   containerSize: { width: number; height: number } | null;
 }
@@ -18,6 +18,7 @@ interface DrawingContextType extends DrawingState {
   setDrawingPoints: (points: Point[]) => void;
   setHasSelection: (hasSelection: boolean) => void;
   setMaskUri: (maskUri: string | null) => void;
+  setBrushSize: (brushSize: number) => void; // Nova função
   setImageDimensions: (
     dimensions: { width: number; height: number } | null
   ) => void;
@@ -37,7 +38,7 @@ export const DrawingProvider: React.FC<DrawingProviderProps> = ({
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
   const [hasSelection, setHasSelection] = useState(false);
   const [maskUri, setMaskUri] = useState<string | null>(null);
-  const [brushSize] = useState(45); // Fixo em 45px
+  const [brushSize, setBrushSize] = useState(45); // Agora mutável
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
     height: number;
@@ -63,6 +64,7 @@ export const DrawingProvider: React.FC<DrawingProviderProps> = ({
     setDrawingPoints,
     setHasSelection,
     setMaskUri,
+    setBrushSize, // Nova função
     setImageDimensions,
     setContainerSize,
     clearDrawing,

@@ -7,7 +7,6 @@ import {
   View,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import CustomButton from "./CustomButton";
 
 interface Point {
   x: number;
@@ -206,78 +205,61 @@ export const ImagePainter: React.FC<ImagePainterProps> = ({
   }, [onDrawingChange]);
 
   return (
-    <View style={styles.outerContainer}>
-      <View
-        style={[
-          styles.container,
-          { width: imageStyle.width, height: imageStyle.height },
-        ]}
-      >
-        {/* Imagem de fundo */}
-        <Image
-          source={{ uri: imageUri }}
-          style={[
-            styles.image,
-            { width: imageStyle.width, height: imageStyle.height },
-          ]}
-          resizeMode="contain"
-        />
-
-        {/* Canvas de desenho sobreposto */}
-        {imageStyle.width > 0 &&
-          imageStyle.height > 0 &&
-          imageDimensions &&
-          panResponder && (
-            <View
-              style={[
-                styles.canvas,
-                {
-                  width: imageStyle.width,
-                  height: imageStyle.height,
-                  zIndex: 10,
-                },
-              ]}
-              pointerEvents="box-none"
-              {...panResponder.panHandlers}
-            >
-              <Svg width={imageStyle.width} height={imageStyle.height}>
-                {/* Traçado principal */}
-                {drawingPoints.length > 1 && (
-                  <Path
-                    d={svgPath}
-                    stroke="rgba(59, 130, 246, 0.4)"
-                    strokeWidth={brushSize}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                )}
-                {/* Pontos individuais */}
-                {svgPoints.map((svgPoint, index) => (
-                  <Circle
-                    key={index}
-                    cx={svgPoint.x}
-                    cy={svgPoint.y}
-                    r={brushSize / 2}
-                    fill="rgba(59, 130, 246, 0.3)"
-                  />
-                ))}
-              </Svg>
-            </View>
-          )}
-
-        {/* Botão Visualizar Máscara */}
-        {drawingPoints.length > 0 && onToggleMask && (
-          <View style={styles.maskButtonContainer}>
-            <CustomButton
-              title={showMask ? "Visualizar Foto" : "Visualizar Máscara"}
-              onPress={onToggleMask}
-              primary={showMask}
-              style={styles.maskButton}
-            />
+    <View
+      style={{
+        flex: 1,
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Image
+        source={{ uri: imageUri }}
+        style={{ width: "100%", height: "100%", resizeMode: "contain" }}
+      />
+      {/* Canvas de desenho sobreposto */}
+      {imageStyle.width > 0 &&
+        imageStyle.height > 0 &&
+        imageDimensions &&
+        panResponder && (
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 10,
+            }}
+            pointerEvents="box-none"
+            {...panResponder.panHandlers}
+          >
+            <Svg width={imageStyle.width} height={imageStyle.height}>
+              {/* Traçado principal */}
+              {drawingPoints.length > 1 && (
+                <Path
+                  d={svgPath}
+                  stroke="rgba(59, 130, 246, 0.4)"
+                  strokeWidth={brushSize}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              )}
+              {/* Pontos individuais */}
+              {svgPoints.map((svgPoint, index) => (
+                <Circle
+                  key={index}
+                  cx={svgPoint.x}
+                  cy={svgPoint.y}
+                  r={brushSize / 2}
+                  fill="rgba(59, 130, 246, 0.3)"
+                />
+              ))}
+            </Svg>
           </View>
         )}
-      </View>
     </View>
   );
 };

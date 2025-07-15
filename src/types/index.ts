@@ -22,6 +22,10 @@ export type SimulationResult = {
 
 export type SimulationHistory = SimulationResult[];
 
+// Novos tipos para os campos de idade e volume
+export type AgeType = "elderly" | "middle-aged" | "young";
+export type VolumeType = "more volume" | "less volume" | "natural";
+
 export interface GeneratedType {
   message: string;
   files: Files;

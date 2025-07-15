@@ -10,10 +10,12 @@ import {
   View,
 } from "react-native";
 import ViewShot from "react-native-view-shot";
+import AgeVolumeSelector from "../components/AgeVolumeSelector";
 import CustomButton from "../components/CustomButton";
 import { simulateHairTransplant } from "../services/api";
 import { saveSimulation } from "../services/storage";
 import { colors } from "../theme";
+import { AgeType, VolumeType } from "../types";
 
 export default function BflIa() {
   const router = useRouter();
@@ -46,6 +48,10 @@ export default function BflIa() {
     "Processando sua simulação..."
   );
   const shapesSectionAnim = React.useRef(new Animated.Value(1)).current;
+
+  // Novos estados para idade e volume
+  const [selectedAge, setSelectedAge] = useState<AgeType>("young");
+  const [selectedVolume, setSelectedVolume] = useState<VolumeType>("natural");
 
   useEffect(() => {
     if (photo) {
@@ -137,8 +143,12 @@ export default function BflIa() {
     }
     setIsLoading(true);
     try {
-      // Enviando a foto original do usuário para BFL
-      const simulationResult = await simulateHairTransplant(photo);
+      // Enviando a foto original do usuário para BFL com os novos parâmetros
+      const simulationResult = await simulateHairTransplant(
+        photo,
+        selectedAge,
+        selectedVolume
+      );
       await saveSimulation(simulationResult);
       router.push({
         pathname: "/result",
@@ -195,89 +205,84 @@ export default function BflIa() {
   return (
     <SafeAreaView className="flex-1 bg-background-default">
       <View className="flex-1">
-        {/* Área da Imagem Principal */}
-        <View className="flex-1 px-4">
+        {/* Área da Imagem Principal - Agora ocupa mais espaço */}
+        <View className="flex-1 px-4 pt-4">
           <View
-            className="flex-1 w-full rounded-lg overflow-hidden justify-center items-center"
+            className="flex-1 bg-white rounded-xl overflow-hidden shadow-sm"
             onLayout={onContainerLayout}
           >
-            {photo && (
-              <View
-                className="w-full h-full justify-center items-center"
-                style={{
-                  aspectRatio:
-                    imageDimensions?.width && imageDimensions?.height
-                      ? imageDimensions.width / imageDimensions.height
-                      : 1,
-                }}
-              >
+            {photo ? (
+              <View className="flex-1 justify-center items-center p-2">
                 <Image
                   source={{ uri: photo }}
-                  className="w-full h-full"
-                  resizeMode="contain"
+                  className="w-full h-full rounded-lg"
+                  style={{ resizeMode: "contain" }}
                   onLayout={onImageLayout}
-                  onError={(error) => {
-                    console.error(
-                      "Erro ao carregar imagem:",
-                      error.nativeEvent
-                    );
-                    Alert.alert("Erro", "Não foi possível carregar a imagem.");
-                  }}
                 />
+              </View>
+            ) : (
+              <View className="flex-1 justify-center items-center">
+                <Text className="text-gray-500">Nenhuma foto selecionada</Text>
               </View>
             )}
           </View>
         </View>
 
-        {/* Área de Status e Botões */}
-        <View className="px-4 py-4 bg-background-default">
-          {isLoading ? (
-            <View className="items-center justify-center py-4">
-              <View className="w-full h-16 bg-background-light rounded-xl overflow-hidden mb-4">
-                <Animated.View
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: loadingProgress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ["0%", "100%"],
-                    }),
-                    backgroundColor: colors.primary.main,
-                    opacity: 0.2,
-                  }}
-                />
-                <View className="absolute inset-0 items-center justify-center">
-                  {/* <ActivityIndicator
-                    size="large"
-                    color={colors.primary.main}
-                    className="mb-2"
-                  /> */}
-                  <Text className="text-text-primary text-sm font-medium">
-                    {loadingText}
-                  </Text>
+        {/* Área de Configurações - Mais compacta */}
+        <View className="px-4 py-3 bg-background-default">
+          {/* Seletor de Idade e Volume - Layout horizontal compacto */}
+          <AgeVolumeSelector
+            selectedAge={selectedAge}
+            selectedVolume={selectedVolume}
+            onAgeChange={setSelectedAge}
+            onVolumeChange={setSelectedVolume}
+          />
+
+          {/* Botões de Ação */}
+          <View className="mt-4 space-y-3">
+            {isLoading ? (
+              <View className="items-center justify-center py-4">
+                <View className="w-full h-16 bg-background-light rounded-xl overflow-hidden mb-4">
+                  <Animated.View
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: loadingProgress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0%", "100%"],
+                      }),
+                      backgroundColor: colors.primary.main,
+                      opacity: 0.2,
+                    }}
+                  />
+                  <View className="absolute inset-0 items-center justify-center">
+                    <Text className="text-text-primary text-sm font-medium">
+                      {loadingText}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ) : (
-            <>
-              <CustomButton
-                title="Gerar Simulação IA"
-                onPress={handleSimulate}
-                icon="sparkles-outline"
-                primary={true}
-              />
-              <View className="h-3" />
-              <CustomButton
-                title="Capturar Novamente"
-                onPress={() => router.back()}
-                icon="arrow-back-outline"
-                primary={false}
-                disabled={isLoading}
-              />
-            </>
-          )}
+            ) : (
+              <>
+                <CustomButton
+                  title="Gerar Simulação IA"
+                  onPress={handleSimulate}
+                  icon="sparkles-outline"
+                  primary={true}
+                />
+                <View className="h-3" />
+                <CustomButton
+                  title="Capturar Novamente"
+                  onPress={() => router.back()}
+                  icon="arrow-back-outline"
+                  primary={false}
+                  disabled={isLoading}
+                />
+              </>
+            )}
+          </View>
         </View>
       </View>
 

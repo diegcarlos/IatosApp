@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { BrushSizeControl } from "../components/BrushSizeControl";
 import { ImagePainter } from "../components/ImagePainter";
 import { MaskGenerator } from "../components/MaskGenerator";
 import { Toolbar } from "../components/Toolbar";
@@ -15,6 +16,7 @@ import { DrawingProvider, useDrawing } from "../contexts/DrawingContext";
 import { simulateHairTransplantStability } from "../services/api";
 import { saveSimulation } from "../services/storage";
 import { colors } from "../theme";
+import { AgeType, VolumeType } from "../types";
 
 interface Point {
   x: number;
@@ -34,6 +36,7 @@ function PhotoReviewContent() {
     setDrawingPoints,
     setHasSelection,
     setMaskUri,
+    setBrushSize,
     setImageDimensions,
     clearDrawing,
   } = useDrawing();
@@ -46,6 +49,10 @@ function PhotoReviewContent() {
   const [showMask, setShowMask] = useState(false);
   const [isGeneratingMask, setIsGeneratingMask] = useState(false);
   const [pendingSendToAI, setPendingSendToAI] = useState(false);
+
+  // Novos estados para idade e volume
+  const [selectedAge, setSelectedAge] = useState<AgeType>("young");
+  const [selectedVolume, setSelectedVolume] = useState<VolumeType>("natural");
 
   useEffect(() => {
     if (isLoading) {
@@ -129,7 +136,9 @@ function PhotoReviewContent() {
       try {
         const simulationResult = await simulateHairTransplantStability(
           photo,
-          finalMaskUri
+          finalMaskUri,
+          selectedAge,
+          selectedVolume
         );
         await saveSimulation(simulationResult);
         router.push({
@@ -148,7 +157,7 @@ function PhotoReviewContent() {
         setIsLoading(false);
       }
     },
-    [photo, router]
+    [photo, router, selectedAge, selectedVolume]
   );
 
   const handleSendToAI = useCallback(async () => {
@@ -189,51 +198,40 @@ function PhotoReviewContent() {
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.background.default }}
     >
-      <View style={{ flex: 1 }}>
-        {/* Área de desenho principal */}
-        <View
-          style={{
-            flex: 1,
-            padding: 16,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {isGeneratingMask ? (
-            <View
+      {/* TOPO: Seletor de IA (se houver) */}
+      {/* <View style={{ height: 56, justifyContent: 'center', backgroundColor: colors.background.paper }}>
+        <AgeVolumeSelector ... />
+      </View> */}
+
+      {/* MEIO: Área de desenho (imagem) */}
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        {isGeneratingMask ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Text
               style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
+                color: colors.text.primary,
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 16,
               }}
             >
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  marginBottom: 16,
-                }}
-              >
-                Gerando Máscara...
-              </Text>
-            </View>
-          ) : (
-            <>
-              <ImagePainter
-                imageUri={photo}
-                brushSize={brushSize}
-                onDrawingChange={handleDrawingChange}
-                onDrawingComplete={handleDrawingComplete}
-                onImageDimensionsChange={handleImageDimensionsChange}
-                isDrawingEnabled={!isLoading}
-                showMask={showMask}
-                onToggleMask={handleToggleMask}
-              />
-            </>
-          )}
-        </View>
-
+              Gerando Máscara...
+            </Text>
+          </View>
+        ) : (
+          <ImagePainter
+            imageUri={photo}
+            brushSize={brushSize}
+            onDrawingChange={handleDrawingChange}
+            onDrawingComplete={handleDrawingComplete}
+            onImageDimensionsChange={handleImageDimensionsChange}
+            isDrawingEnabled={!isLoading}
+            showMask={showMask}
+            onToggleMask={handleToggleMask}
+          />
+        )}
         {/* MaskGenerator - renderizado fora da tela */}
         {isGeneratingMask && imageDimensions && drawingPoints.length > 0 && (
           <MaskGenerator
@@ -244,7 +242,7 @@ function PhotoReviewContent() {
               // brushSize é relativo ao canvas, converter para imagem original
               // Obter o tamanho do canvas usado no ImagePainter
               const screenWidth = Dimensions.get("window").width - 32;
-              const screenHeight = Dimensions.get("window").height * 0.6;
+              const screenHeight = Dimensions.get("window").height - 180; // Considera topo e base
               const aspectRatio =
                 imageDimensions.width / imageDimensions.height;
               let canvasWidth = screenWidth;
@@ -260,8 +258,25 @@ function PhotoReviewContent() {
             onMaskGenerated={handleMaskGenerated}
           />
         )}
+      </View>
 
-        {/* Toolbar com controles */}
+      {/* BASE: Barra de controles (BrushSizeControl + Toolbar) */}
+      <View
+        style={{
+          minHeight: 90,
+          backgroundColor: colors.background.paper,
+          paddingHorizontal: 8,
+          paddingTop: 4,
+          paddingBottom: 8,
+        }}
+      >
+        <BrushSizeControl
+          brushSize={brushSize}
+          onBrushSizeChange={setBrushSize}
+          minSize={10}
+          maxSize={80}
+          step={5}
+        />
         <Toolbar
           onClearDrawing={handleClearDrawing}
           onCaptureAgain={handleCaptureAgain}
@@ -271,8 +286,6 @@ function PhotoReviewContent() {
           showMask={showMask}
           onToggleMask={handleToggleMask}
         />
-
-        {/* Debug visual: mostrar a máscara gerada antes de enviar para a API */}
       </View>
 
       {/* Loading Overlay */}
